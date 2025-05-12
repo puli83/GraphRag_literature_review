@@ -1,4 +1,5 @@
 [GraphRAG from a brief literature review]
+
 A brief, one-sentence description of your project.
 
 # Description
