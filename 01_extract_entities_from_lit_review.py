@@ -3,22 +3,25 @@ import pandas as pd
 from tqdm import tqdm
 import pickle
 import os
+import datetime
 import networkx as nx
 from customTools import clear_gpu_memory, TimeExecution
 # os.environ['HF_HOME']
 # =============================================================================
 #
+# %% PATH
 pth_import = 'data_Rag_litt_rev'
+pth_nodes = 'data_nodes'
+
+# %% import
 
 with open(os.path.join(pth_import, 'dict_extracted_chunks_pdfs.pkl'), 'rb') as file:
     chunks_dict = pickle.load(file)
 
 chunks_dict.keys()
-
-
-import datetime
-
+# %% Transform to nopdces
 from llama_index.core import Document
+#
 documents_df = [
     Document(
         text=chunk,
@@ -50,7 +53,9 @@ nodes = node_parser.get_nodes_from_documents(documents_df)
 
 len(nodes)
 # =============================================================================
+# %% build llm
 # from groq import Groq
+
 # Get the token from an environment variable
 api_token = os.environ.get("GROQ_API_TOKEN")
 
@@ -108,55 +113,6 @@ test_response.text
 
 
 
-# from llama_index.core.llms import ChatMessage
-
-# messages = [
-#     ChatMessage(
-#         role="system", content="You are a professor of history"
-#     ),
-#     ChatMessage(role="user", content="Which is the capital of Italy?"),
-# ]
-# resp = llm.chat(messages)
-# dir(resp)
-# dir(resp.message)
-# resp.message.blocks
-
-# clear_gpu_memory()
-
-
-#########################################################################
-
-import datetime
-#######################
-
-
-# =============================================================================
-# priompt never used:SYSTEM_PROMPT = """You are an expert system for entity and relationship extraction in the domain of electrical engineering and 5G communication systems. Given a pargarph of a scientific paper in 5G, paticulary, a paragraphn of a literature review about 5G tehcnology, identify:
-#
-# 1. All distinct entities (technologies, concepts, objects, applications, etc.)
-# 2. Direct relationships between entities that are explicitly stated in the text
-# 3. A score, from 0 to 3, that evaluates the intensity of the relationship
-#
-# Format your response as:
-#
-# RELATIONSHIPS:
-#   Entity A -> Entity B (relationship type)[score]
-#   Entity C -> Entity D (relationship type)[score]
-# [...]
-#
-# Rules:
-# - Only include relationships explicitly stated in the text
-# - Use clear, concise relationship labels
-# - Maintain consistent entity names
-# - Entity names and relationship labels should be in English only, lemmatized, with nouns in singular form and verbs in infinitive form
-# - Order entities in each relationship to follow logical causation
-# - Output format:
-#     -- Provide only RELATIONSHIPS, no ENTITIES
-#     -- Be as exhaustive as possible in converting the whole text  in entities and relationships
-# """
-# =============================================================================
-
-
 # Define a function to handle a single completion
 def get_completion(node, llm):
     SYSTEM_PROMPT = """You are an expert system specialized in extracting entities and relationships from scientific literature in the domain of electrical engineering and 5G communication systems, with a specific focus on literature reviews. Your goal is to analyze paragraphs from 5G literature reviews and extract structured information to contribute to building a comprehensive domain-specific knowledge graph.
@@ -196,74 +152,18 @@ def get_completion(node, llm):
     return llm.complete(f""""<<system prompt>>\n + {SYSTEM_PROMPT} + <</system prompt>>\n\n <<user query>>Extract entities and relationships from the following text: {node.text} <</user query>>""")
 
 #usage:
-with TimeExecution():
-    test = get_completion(nodes[1], llm)
-test.text
+# with TimeExecution():
+#     test = get_completion(nodes[1], llm)
+# test.text
 
 
-
-# clear_gpu_memory()
-
-####################### this does not work really
-# import time
-# import concurrent.futures
-# from threading import Semaphore
-
-# # Define a semaphore to limit the number of concurrent requests
-# max_requests_per_minute = 28
-# semaphore = Semaphore(max_requests_per_minute)
-
-# # Function to process a single node with rate limiting
-# def process_single_node(node, llm):
-#     clear_gpu_memory()
-
-#     # Acquire the semaphore to enforce rate limiting
-#     semaphore.acquire()
-
-#     try:
-#         # Call the get_completion function
-#         answer = get_completion(node, llm)
-
-#         # Add the cleaned text as metadata to the node
-#         node.metadata["deepseek_llama_370_answer"] = answer
-#     finally:
-#         # Release the semaphore after a delay to enforce the rate limit
-#         time.sleep(60 / max_requests_per_minute)
-#         semaphore.release()
-
-#     return answer
-
-# # Function to process all nodes in parallel
-# def process_nodes_in_parallel(nodes, llm):
-#     results = []
-
-#     # Use ThreadPoolExecutor to process nodes in parallel
-#     with concurrent.futures.ThreadPoolExecutor() as executor:
-#         # Submit tasks to the executor
-#         futures = [executor.submit(process_single_node, node, llm) for node in nodes]
-
-#         # Collect results as they complete
-#         for future in concurrent.futures.as_completed(futures):
-#             try:
-#                 result = future.result()
-#                 results.append(result)
-#             except Exception as e:
-#                 print(f"An error occurred: {e}")
-
-#     return results
-
-# results = process_nodes_in_parallel(nodes, llm)
-# len(results)
-
-# results[1]
-####################
-
+# %% function to operate in parrallel
 ##################### tried 2025-05-05
+
 import concurrent.futures
 import time
-from functools import partial
+# from functools import partial
 from concurrent.futures import ThreadPoolExecutor
-from tqdm import tqdm
 
 # Define a rate-limiter class to control the processing rate
 class RateLimiter:
@@ -316,7 +216,9 @@ def extract_elements_from_chunks(nodes, llm, max_per_minute=30):
 
     return elements
 
-# Example usage
+# %% execute extraction  with llm
+#  usage
+
 with TimeExecution():
     elements = extract_elements_from_chunks(nodes, llm, max_per_minute=28)
 
@@ -324,63 +226,61 @@ with TimeExecution():
 len(elements)
 elements[20]
 nodes[20].text
-# nodes[[134, 224, 272, 466, 674, 699]]
-
-# len(nodes)
-# len([x for idx,x in enumerate(nodes) if idx in [134, 224, 272, 466, 674, 699]] )
-
-# with TimeExecution():
-#     elements = extract_elements_from_chunks( [x for idx,x in enumerate(nodes) if idx in [134, 224, 272, 466, 674, 699]] , llm) #
 
 
-# # llm.generate_kwargs = {"do_sample": False,
-# #                        # "temperature": 0.6,
-# #                        "temperature": 0.0,
-# #                         "top_p": 0.0,
-# #                        }
-
-# # import random
-
-
-# for idx, nod_ in  enumerate([x for idx,x in enumerate(nodes) if idx in [134, 224, 272, 466, 674, 699]]):
-#     print(idx)
-#     print(nod_.metadata.get('entities_relationship'))
-
-correct_answer = get_completion(nodes[351], llm)
-# nodes[351].metadata['entities_relationship'] = correct_answer
-
-# os.listdir()
-# # Save nodes
-# with open('RAG_EXTRACT_TEST/nodes_HF-2024-12-09-bis.pkl', 'wb') as f:
-#     pickle.dump(nodes, f)
-
-
+# %%
 # Save nodes
-with open('RAG_EXTRACT_TEST/nodes_HF-2024-12-09.pkl', 'wb') as f:
+
+with open(os.opath.join(pth_nodes, f'nodes_lit_rev_{str(datetime.datetime.now().strftime("%Y-%m-%d"))}.pkl'), 'wb') as f:
     pickle.dump(nodes, f)
 
-# Save nodes
-with open('RAG_EXTRACT_TEST/elements_HF.pkl', 'wb') as f:
-    pickle.dump(elements, f)
+
+# %% NOTES:
 
 
+# from llama_index.core.llms import ChatMessage
+
+# messages = [
+#     ChatMessage(
+#         role="system", content="You are a professor of history"
+#     ),
+#     ChatMessage(role="user", content="Which is the capital of Italy?"),
+# ]
+# resp = llm.chat(messages)
+# dir(resp)
+# dir(resp.message)
+# resp.message.blocks
+
+# clear_gpu_memory()
 
 
-# Load nodes from pickle file
-with open('RAG_EXTRACT_TEST/nodes_HF-2024-12-09-bis.pkl', 'rb') as f:  # Note 'rb' for reading binary
-    nodes = pickle.load(f)
+#########################################################################
+#######################
+# =============================================================================
+# priompt never used:SYSTEM_PROMPT = """You are an expert system for entity and relationship extraction in the domain of electrical engineering and 5G communication systems. Given a pargarph of a scientific paper in 5G, paticulary, a paragraphn of a literature review about 5G tehcnology, identify:
+#
+# 1. All distinct entities (technologies, concepts, objects, applications, etc.)
+# 2. Direct relationships between entities that are explicitly stated in the text
+# 3. A score, from 0 to 3, that evaluates the intensity of the relationship
+#
+# Format your response as:
+#
+# RELATIONSHIPS:
+#   Entity A -> Entity B (relationship type)[score]
+#   Entity C -> Entity D (relationship type)[score]
+# [...]
+#
+# Rules:
+# - Only include relationships explicitly stated in the text
+# - Use clear, concise relationship labels
+# - Maintain consistent entity names
+# - Entity names and relationship labels should be in English only, lemmatized, with nouns in singular form and verbs in infinitive form
+# - Order entities in each relationship to follow logical causation
+# - Output format:
+#     -- Provide only RELATIONSHIPS, no ENTITIES
+#     -- Be as exhaustive as possible in converting the whole text  in entities and relationships
+# """
+# =============================================================================
 
-len(nodes)
-nodes[0]
-nodes[0].text
-documents_df[0]
-
-# #usage:
-with TimeExecution():
-    test = get_completion(nodes[0], llm)
-    test = get_completion(nodes[200], llm)
-test.text
-
-nodes[0]
 
 
