@@ -168,7 +168,7 @@ nodes[20].metadata["deepseek_llama_370_answer"]
 # %%
 # Save nodes
 
-with open(os.opath.join(pth_nodes, f'nodes_lit_rev_{str(datetime.datetime.now().strftime("%Y-%m-%d"))}.pkl'), 'wb') as f:
+with open(os.path.join(pth_nodes, f'nodes_lit_rev_with_KG_{str(datetime.datetime.now().strftime("%Y-%m-%d"))}.pkl'), 'wb') as f:
     pickle.dump(nodes, f)
 
 
