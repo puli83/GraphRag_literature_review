@@ -113,114 +113,51 @@ test_response.text
 
 
 
-# Define a function to handle a single completion
-def get_completion(node, llm):
-    SYSTEM_PROMPT = """You are an expert system specialized in extracting entities and relationships from scientific literature in the domain of electrical engineering and 5G communication systems, with a specific focus on literature reviews. Your goal is to analyze paragraphs from 5G literature reviews and extract structured information to contribute to building a comprehensive domain-specific knowledge graph.
-
-    Given a paragraph from a scientific paper's literature review about 5G technology:
-
-    Task:
-    Analyze the provided paragraph and extract all explicit binary relationships between relevant entities within the domain.
-
-    Output Format:
-    Present the extracted relationships under the heading "RELATIONSHIPS:", with each relationship on a new line in the following format:
-    Entity A -> Entity B (relationship type)
-
-    Rules for Extraction and Formatting:
-    1.  **Entity Identification:** Identify all relevant entities such as technologies, concepts, applications, standards, hardware components, stakeholders, etc., that are mentioned in the paragraph and pertain to the 5G domain. (Note: You identify these internally to find relationships; they are not listed separately in the output).
-    2.  **Relationship Identification:** Identify direct relationships that are explicitly stated in the text linking two identified entities. Focus only on relationships entirely contained within the paragraph.
-    3.  **Binary Relationships:** Extract only relationships involving exactly two entities.
-    4.  **Explicitness:** Do NOT infer relationships that are not directly stated in the text.
-    5.  **Exhaustiveness:** Aim to capture as many explicit binary relationships as possible from the provided paragraph.
-    6.  **Consistency:** Maintain consistent naming for the same entity across different relationships extracted *from this specific paragraph*.
-    7.  **Naming Convention:**
-        * All entity names and relationship labels must be in English.
-        * Entity names (nouns) should be in singular form and lemmatized (e.g., "technology" not "technologies", "application" not "applications", "network" not "networks").
-        * Relationship labels (verbs) should be in the infinitive form and lemmatized where appropriate (e.g., "use" not "uses" or "using", "enable" not "enables" or "enabled", "provide" not "provides").
-        * Use clear, concise, and descriptive labels for relationship types (e.g., "enable", "include", "use", "provide", "require", "is a type of", "improve").
-    8.  **Output Content:** Provide ONLY the "RELATIONSHIPS:" section followed immediately by the list of relationships. Do NOT include a separate list of entities, introductory/concluding remarks, or any other explanatory text.
-    9.  **Formatting:** Adhere strictly to the specified `Entity A -> Entity B (relationship type)` format for each relationship line.
-
-    """
-
-    # query_wrapper_prompt = PromptTemplate(
-    #     "[INST]<<SYS>>\n" + SYSTEM_PROMPT + "<</SYS>>\n\n{query_str}[/INST] "
-    # )
-
-    # llm.query_wrapper_prompt = query_wrapper_prompt
-    # llm.query_wrapper_prompt = "[INST]<<SYS>>\n" + SYSTEM_PROMPT + "<</SYS>>\n\n{query_str}[/INST] "
-    return llm.complete(f""""<<system prompt>>\n + {SYSTEM_PROMPT} + <</system prompt>>\n\n <<user query>>Extract entities and relationships from the following text: {node.text} <</user query>>""")
-
 #usage:
 # with TimeExecution():
 #     test = get_completion(nodes[1], llm)
 # test.text
 
 
-# %% function to operate in parrallel
-##################### tried 2025-05-05
 
-import concurrent.futures
-import time
-# from functools import partial
-from concurrent.futures import ThreadPoolExecutor
-
-# Define a rate-limiter class to control the processing rate
-class RateLimiter:
-    def __init__(self, max_per_minute):
-        self.max_per_minute = max_per_minute
-        self.interval = 60 / max_per_minute  # Time interval between tasks
-        self.last_time = time.time()
-
-    def wait(self):
-        current_time = time.time()
-        elapsed_time = current_time - self.last_time
-        if elapsed_time < self.interval:
-            time.sleep(self.interval - elapsed_time)
-        self.last_time = time.time()
-
-# Modify the process_single_node function to include rate limiting
-def process_single_node(node, llm, rate_limiter=None):
-    if rate_limiter:
-        rate_limiter.wait()  # Wait to ensure rate limit is respected
-    # Process a single node
-    answer = get_completion(node, llm)
-    # Add the cleaned text as metadata to the node
-    node.metadata["deepseek_llama_370_answer"] = answer
-    return answer
-
-# Function to extract elements from chunks with rate limiting
-def extract_elements_from_chunks(nodes, llm, max_per_minute=30):
-    elements = []
-    # Create a rate limiter for 28 nodes per minute
-    rate_limiter = RateLimiter(max_per_minute=max_per_minute)
-
-    # Create a partial function that includes llm and rate_limiter
-    from functools import partial
-    process_node = partial(process_single_node, llm=llm, rate_limiter=rate_limiter)
-
-    # Use ThreadPoolExecutor to process nodes concurrently
-    with ThreadPoolExecutor(max_workers=2) as executor:
-        # Submit all nodes to the executor
-        futures = [executor.submit(process_node, node) for node in nodes]
-
-        # Use tqdm to monitor progress
-        with tqdm(total=len(futures), desc="Processing nodes") as pbar:
-            for future in concurrent.futures.as_completed(futures):
-                try:
-                    result = future.result()
-                    elements.append(result)
-                except Exception as e:
-                    print(f"An error occurred: {e}")
-                pbar.update(1)
-
-    return elements
 
 # %% execute extraction  with llm
-#  usage
+from KG_Extractor import EntityExtractor
+
+SYSTEM_PROMPT = """You are an expert system specialized in extracting entities and relationships from scientific literature in the domain of electrical engineering and 5G communication systems, with a specific focus on literature reviews. Your goal is to analyze paragraphs from 5G literature reviews and extract structured information to contribute to building a comprehensive domain-specific knowledge graph.
+
+Given a paragraph from a scientific paper's literature review about 5G technology:
+
+Task:
+Analyze the provided paragraph and extract all explicit binary relationships between relevant entities within the domain.
+
+Output Format:
+Present the extracted relationships under the heading "RELATIONSHIPS:", with each relationship on a new line in the following format:
+Entity A -> Entity B (relationship type)
+
+Rules for Extraction and Formatting:
+1.  **Entity Identification:** Identify all relevant entities such as technologies, concepts, applications, standards, hardware components, stakeholders, etc., that are mentioned in the paragraph and pertain to the 5G domain. (Note: You identify these internally to find relationships; they are not listed separately in the output).
+2.  **Relationship Identification:** Identify direct relationships that are explicitly stated in the text linking two identified entities. Focus only on relationships entirely contained within the paragraph.
+3.  **Binary Relationships:** Extract only relationships involving exactly two entities.
+4.  **Explicitness:** Do NOT infer relationships that are not directly stated in the text.
+5.  **Exhaustiveness:** Aim to capture as many explicit binary relationships as possible from the provided paragraph.
+6.  **Consistency:** Maintain consistent naming for the same entity across different relationships extracted *from this specific paragraph*.
+7.  **Naming Convention:**
+    * All entity names and relationship labels must be in English.
+    * Entity names (nouns) should be in singular form and lemmatized (e.g., "technology" not "technologies", "application" not "applications", "network" not "networks").
+    * Relationship labels (verbs) should be in the infinitive form and lemmatized where appropriate (e.g., "use" not "uses" or "using", "enable" not "enables" or "enabled", "provide" not "provides").
+    * Use clear, concise, and descriptive labels for relationship types (e.g., "enable", "include", "use", "provide", "require", "is a type of", "improve").
+8.  **Output Content:** Provide ONLY the "RELATIONSHIPS:" section followed immediately by the list of relationships. Do NOT include a separate list of entities, introductory/concluding remarks, or any other explanatory text.
+9.  **Formatting:** Adhere strictly to the specified `Entity A -> Entity B (relationship type)` format for each relationship line.
+"""
+
+extractor = EntityExtractor(llm_instance=llm, system_prompt=SYSTEM_PROMPT, max_workers=2)
+
+#test = extractor.extract_elements_from_chunks([nodes[0]], max_requests_per_minute=28)
+#
 
 with TimeExecution():
-    elements = extract_elements_from_chunks(nodes, llm, max_per_minute=28)
+    elements = extractor.extract_elements_from_chunks(nodes, max_requests_per_minute=28)
 
 
 len(elements)
