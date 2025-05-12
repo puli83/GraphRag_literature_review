@@ -48,7 +48,7 @@ Instructions on how to get a copy of your project up and running on a local mach
 
 Clone the repository:
 git clone https://github.com/puli83/GraphRag_literature_review.git
-cd [GraphRag_literature_review]
+
 
 
 Install dependencies (if any):
