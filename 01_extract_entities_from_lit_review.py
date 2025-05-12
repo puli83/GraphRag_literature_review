@@ -4,7 +4,7 @@ from tqdm import tqdm
 import pickle
 import os
 import networkx as nx
-from GRAPH_RAG.customTools import clear_gpu_memory, TimeExecution
+from customTools import clear_gpu_memory, TimeExecution
 # os.environ['HF_HOME']
 # =============================================================================
 #
@@ -50,24 +50,10 @@ nodes = node_parser.get_nodes_from_documents(documents_df)
 
 len(nodes)
 # =============================================================================
-from groq import Groq
+# from groq import Groq
+# Get the token from an environment variable
+api_token = os.environ.get("GROQ_API_TOKEN")
 
-# client = Groq(
-#     api_key="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",
-# )
-
-# chat_completion = client.chat.completions.create(
-#     messages=[
-#         {
-#             "role": "user",
-#             "content": "Explain the importance of fast language models",
-#         }
-#     ],
-#     # model="llama-3.3-70b-versatile",
-#     model="deepseek-r1-distill-llama-70b",
-# )
-
-# print(chat_completion.choices[0].message.content)
 
 
 ##### test llamaindex class
@@ -76,7 +62,7 @@ from llama_index.llms.groq import Groq
 llm = Groq(
     # model='llama3:instruct',  # or another model you've pulled in Ollama
     model='deepseek-r1-distill-llama-70b',
-    api_key="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",
+    api_key=api_token,
     # context_window=4096,
     context_window=8192,
     num_output=1024,  # note: this is equivalent to max_new_tokens
@@ -115,7 +101,7 @@ llm = Groq(
 # )
 # query_str =
 # prompt = "[INST]<<SYS>>\n" + SYSTEM_PROMPT + "<</SYS>>\n\n{query_str}[/INST] "
-test_response = llm.complete("Which is the capital of Italy?")
+test_response = llm.complete("Which is the main city in Sicily?")
 
 dir(test_response)
 test_response.text
