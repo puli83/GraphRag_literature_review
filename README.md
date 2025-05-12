@@ -66,11 +66,11 @@ Use the scripts in your own working environment (i.e. using pycharm, spyder, etc
 
 
 
-#License
+# License
 
 MIT License
 
-#Contact
+# Contact
 
 Davide Pulizzotto, Polytechnique Montréal - [mail](davide.pulizzotto@polymtl.ca)
 
