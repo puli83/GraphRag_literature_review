@@ -225,7 +225,7 @@ with TimeExecution():
 
 len(elements)
 elements[20]
-nodes[20].text
+nodes[20].metadata["deepseek_llama_370_answer"]
 
 
 # %%
