@@ -1,0 +1,7 @@
+pandas
+tqdm
+networkx
+pypdf
+llama-index
+llama-index-llms-groq
+torch
