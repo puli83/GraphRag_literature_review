@@ -66,7 +66,7 @@ for node in nodes:
     struct_rel_normalized = []
     if 'structured_rels' in node.metadata.keys():
         for item in node.metadata['structured_rels']:
-            struct_rel_normalized.append({'source' : normalization_map.get(item["source"]), 'target' : normalization_map.get(item["target"]), 'relation' : item["relation"], 'source_embed' : normalizer.get_embeddings(item["source"]), 'target_embed' : normalizer.get_embeddings(item["target"]), 'relation_embed' : normalizer.get_embeddings(item["relation"])})
+            struct_rel_normalized.append({'source' : normalization_map.get(item["source"]), 'target' : normalization_map.get(item["target"]), 'relation' : item["relation"]})
 
         node.metadata['structured_rels_normalized_embed'] = struct_rel_normalized
 
