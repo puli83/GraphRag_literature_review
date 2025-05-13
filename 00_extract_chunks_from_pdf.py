@@ -92,7 +92,7 @@ chunks_dict = {}
 # regex = r"([^_]+).*?\.pdf"
 
 # --- Main Execution ---
-pth_import = 'data_Rag_litt_rev'
+pth_import = 'data/litt_rev'
 for PDF_FILE_PATH in os.listdir(pth_import):
     # match = re.search(regex, PDF_FILE_PATH)
     # if match:

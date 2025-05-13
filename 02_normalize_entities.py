@@ -2,8 +2,8 @@ import pickle
 import os
 import datetime
 from llama_index.core import Document
-from EntityNormalizer import EntityNormalizer
-from Parsers import ParserLLM_KG_extracted_output
+from Modules.EntityNormalizer import EntityNormalizer
+from Modules.Parsers import ParserLLM_KG_extracted_output
 # %% PATH
 pth_nodes = 'data_nodes'
 

@@ -10,8 +10,8 @@ from customTools import clear_gpu_memory, TimeExecution
 # =============================================================================
 #
 # %% PATH
-pth_import = 'data_Rag_litt_rev'
-pth_nodes = 'data_nodes'
+pth_import = 'data/litt_rev'
+pth_nodes = 'data/nodes'
 
 # %% import
 
