@@ -15,7 +15,7 @@ The core idea is to transform raw text chunks from PDF documents into actionable
 
 ## Knowledge Extraction Pipeline
 
-![Digram for Knowledge Base creation](./images/Knowledge base creation.jpg)
+![Digram for Knowledge Base creation](./images/Knowledge_base_creation.jpg)
 
 This project includes a 3-step Python pipeline to process the literature:
 
