@@ -63,6 +63,7 @@ Use the scripts in your own working environment (i.e. using pycharm, spyder, etc
 
  1. 00_extract_chunck_from_pdf.py : This file will extract chuncks from pdf to be passed then as nodes to the LLM
  2. 01_extract_entities_from_lit_review.py : This file contains code to load chuncks, converts to nodes, and pass to LLM
+ 3. 02_normalize_entities.py : This file normalize entites using embedding and clustering amoung nodes. BE SURE TO DOWNLOAD the sentence transformer model and insert into the folder "embedding_sentence_transformer_models"
 
 
 
