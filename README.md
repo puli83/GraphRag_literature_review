@@ -15,6 +15,8 @@ The core idea is to transform raw text chunks from PDF documents into actionable
 
 ## Knowledge Extraction Pipeline
 
+![Digram for Knowledge Base creation](./images/Knowledge base creation.jpg)
+
 This project includes a 3-step Python pipeline to process the literature:
 
 **Step 1: PDF Text Extraction and Chunking**
@@ -47,6 +49,14 @@ This project includes a 3-step Python pipeline to process the literature:
     * Updates the relationships in the nodes' metadata to use these normalized entities.
 * **Dependencies:** Custom modules `EntityNormalizer.py` and `Parsers.py`. Requires spaCy model and sentence-transformer model (will be cached in `models_cache_folder/`).
 * **Output:** A final list of LlamaIndex nodes with normalized, structured relationships saved as a pickle file (e.g., `nodes_lit_rev_with_KG_normalzed_embed_YYYY-MM-DD.pkl`) in the `data_nodes/` directory.
+
+
+## Document Annotation with RAG
+
+![Digram for Document annotation](./images/Document_annotation_rag.jpg)
+
+This part is under developement
+
 
 ## Prerequisites
 
