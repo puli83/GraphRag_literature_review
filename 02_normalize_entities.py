@@ -5,7 +5,7 @@ from llama_index.core import Document
 from Modules.EntityNormalizer import EntityNormalizer
 from Modules.Parsers import ParserLLM_KG_extracted_output
 # %% PATH
-pth_nodes = 'data_nodes'
+pth_nodes = 'data/nodes'
 
 models_cache_folder = 'embedding_sentence_transformer_models'
 
